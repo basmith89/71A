@@ -135,8 +135,8 @@ result_df <- result_df[!result_df$Stimulus == "",]
 
 
 
-# Find the starting index for "G-CSF" and apply the transformation to each relevant column
-start_col <- which(names(result_df) == "G-CSF")
+# Find the starting index for the "Stimulus" column and identify all columns that follow it
+start_col <- which(names(result_df) == "Stimulus") + 1  # +1 to start after "Stimulus"
 target_columns <- names(result_df)[start_col:ncol(result_df)]  # Extract names of columns from "G-CSF" onward
 
 ## Clean columns from "G-CSF" onward: remove "<" or ">" symbols and convert to numeric
