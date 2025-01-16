@@ -1,6 +1,7 @@
 # Load required library
 library(dplyr)
 library(tidyverse)
+library(stringr)
 
 #Load the QC limit file
 limit_df <- read.csv("~/Downloads/Limit_QC.csv", header = TRUE, check.names = FALSE)
@@ -43,17 +44,17 @@ extract_sections <- function(file_path, vaccine_input) {
   r2_data <- extract_data("R^2")
   count_data <- extract_data("Count")
   
-  # Add Group, Vaccine, Mouse, and Stimulus columns to result_data, and filter out "Background" or "Standard" samples
+  # Add Group, Vaccine, Sample_ID, and Stimulus columns to result_data, and filter out "Background" or "Standard" samples
   if (!is.null(result_data)) {
     result_data <- result_data %>%
       mutate(
-        Group = substr(Sample, 1, 1),                   # Extract the first character for Group
-        Vaccine = vaccine_input[Group],                 # Map Vaccine using user input for each Group
-        Mouse = substr(Sample, 1, 2),                   # Extract the first two characters for Mouse
+        Group = str_extract(Sample, "^[0-9]+"),                   # Extract the first number for Group
+        Vaccine = vaccine_input[Group],                           # Map Vaccine using user input for each Group
+        Sample_ID = str_extract(Sample, "^[0-9]+[A-Za-z]"),           # Extract the Sample ID
         Stimulus = "Placeholder"
       ) %>%
       filter(!grepl("Background|Standard|STD|BLANK", Sample, ignore.case = TRUE)) %>%  # Exclude rows with "Background" or "Standard"
-      select(1:2, Group, Vaccine, Mouse, Stimulus, everything())  # Move new columns to 3rd-6th position
+      select(1:2, Group, Vaccine, Sample_ID, Stimulus, everything())  # Move new columns to 3rd-6th position
   }
   count_data <- count_data %>% filter(!grepl("Background|Standard|STD|BLANK", Sample, ignore.case = TRUE))
   # Store each result in a named list
@@ -109,8 +110,8 @@ result_df$Vaccine <- sapply(result_df$Group, function(g) vaccine_inputs[[g]])
 
 
 
-# Extract the unique last numbers directly from the Samples column
-unique_groups_stim <- unique(substr(result_df$Sample, nchar(result_df$Sample), nchar(result_df$Sample)))
+# Extract the unique last numbers directly from the Sample column
+unique_groups_stim <- unique(str_extract(result_df$Sample, "[0-9]+$"))
 
 # Initialize an empty list to store user inputs for each unique last number
 stimulus_inputs <- list()
@@ -197,12 +198,18 @@ geo_mean <- function(x) {
   exp(mean(log(x[x > 0]), na.rm = TRUE))  # Handle zeros by excluding them from the log transformation
 }
 
-# Calculate geometric mean for each group and stimulus across columns from "G-CSF" onward
+# Aggregate technical replicates (rows with identical `Sample` values) by calculating the mean
+result_df <- result_df %>%
+  group_by(Sample) %>%
+  summarize(across(all_of(target_columns), ~ mean(as.numeric(.), na.rm = TRUE)), .groups = "drop") %>%
+  left_join(result_df %>% select(Sample, Group, Vaccine, Stimulus, Sample_ID) %>% distinct(), by = "Sample")
+
+# Calculate geometric mean for each group and stimulus across columns for all target_columns (cytokines)
 geometric_means_df <- result_df %>%
   group_by(Group, Stimulus) %>%
   summarize(
     Vaccine = first(Vaccine),
-    Mouse = first(Mouse),
+    Sample_ID = first(Sample_ID),
     across(all_of(target_columns), geo_mean), .groups = "drop")
 
 # Optional: Rename columns back to the original names for easier comparison
