@@ -126,7 +126,7 @@ for (stimgroup in unique_groups_stim) {
 
 # Apply the user inputs to the Stimulus column based on the last character of each sample
 result_df$Stimulus <- sapply(result_df$Sample, function(sample) {
-  stimgroup <- substr(sample, nchar(sample), nchar(sample))
+  stimgroup <- str_extract(sample, "[0-9]+$")
   stimulus_inputs[[stimgroup]]
 })
 
