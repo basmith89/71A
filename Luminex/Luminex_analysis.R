@@ -198,14 +198,18 @@ geo_mean <- function(x) {
   exp(mean(log(x[x > 0]), na.rm = TRUE))  # Handle zeros by excluding them from the log transformation
 }
 
-# Aggregate technical replicates (rows with identical `Sample` values) by calculating the mean
-result_df <- result_df %>%
+# Aggregate technical replicates by taking the log10 before calculating the mean
+tech_mean_df <- result_df %>%
   group_by(Sample) %>%
-  summarize(across(all_of(target_columns), ~ mean(as.numeric(.), na.rm = TRUE)), .groups = "drop") %>%
+  summarize(across(all_of(target_columns), ~ mean(log10(as.numeric(.)), na.rm = TRUE)), .groups = "drop") %>%
+  mutate(across(all_of(target_columns), ~ 10^.))  # Convert back from log10 mean
+
+# Merge with metadata (Group, Vaccine, Stimulus, Sample_ID)
+tech_mean_df <- tech_mean_df %>%
   left_join(result_df %>% select(Sample, Group, Vaccine, Stimulus, Sample_ID) %>% distinct(), by = "Sample")
 
-# Calculate geometric mean for each group and stimulus across columns for all target_columns (cytokines)
-geometric_means_df <- result_df %>%
+# Calculate geometric mean for each group and stimulus using tech_mean_df
+geometric_means_df <- tech_mean_df %>%
   group_by(Group, Stimulus) %>%
   summarize(
     Vaccine = first(Vaccine),
@@ -214,9 +218,6 @@ geometric_means_df <- result_df %>%
 
 # Optional: Rename columns back to the original names for easier comparison
 #names(geometric_means_df)[3:ncol(geometric_means_df)] <- names(data)[start_col:ncol(data)]
-
-
-####Should add could here to intake upper and lower limit QC file to alter values above/below those limits####
 
 
 # Display the results
