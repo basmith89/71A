@@ -1,7 +1,7 @@
 import pandas as pd
 
 # Load the tab-delimited file
-input_file = "/Users/briansmith/Downloads/test_file.txt"  # Replace with your actual filename
+input_file = "test_file.txt"  # Replace with your actual filename
 df = pd.read_csv(input_file, sep="\t")
 
 # Ensure "Gene" and "Bug" columns exist

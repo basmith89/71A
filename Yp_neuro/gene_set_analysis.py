@@ -19,7 +19,7 @@ def split_by_bug_and_gene(input_file, output_dir, apply_filter):
             raise ValueError(f"Missing required column: {col}")
 
     if apply_filter:
-        print("🔍 Applying filtering: |Log2 fold change| >= 1 AND BY.p.value <= 0.05")
+        print("Applying filtering: |Log2 fold change| >= 1 AND BY.p.value <= 0.05")
         df = filter_input_data(df)
 
     bug_groups = df.groupby("Bug")
@@ -79,7 +79,7 @@ def count_gene_sets(bug1, bug2, output_dir):
 
     summary_file = os.path.join(output_dir, "gene_set_summary_counts.txt")
     summary_df.to_csv(summary_file, sep="\t", index=False)
-    print(f"✅ Output written to {summary_file}")
+    print(f"Output written to {summary_file}")
 
 def main():
     parser = argparse.ArgumentParser(description="Split gene data by bug and summarize gene sets.")
@@ -95,7 +95,7 @@ def main():
         bug1, bug2 = split_by_bug_and_gene(args.input_file, args.output_dir, args.filter)
         count_gene_sets(bug1, bug2, args.output_dir)
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"Error: {e}")
 
 if __name__ == "__main__":
     main()

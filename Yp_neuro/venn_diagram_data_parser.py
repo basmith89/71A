@@ -21,7 +21,7 @@ def analyze_gene_presence(input_file, output_dir, apply_filter=False):
             raise ValueError(f"Missing required column: {col}")
 
     if apply_filter:
-        print("🔍 Applying filter: |Log2 fold change| ≥ 1 AND BY.p.value ≤ 0.05")
+        print("Applying filter: |Log2 fold change| ≥ 1 AND BY.p.value ≤ 0.05")
         df = filter_input_data(df)
 
     os.makedirs(output_dir, exist_ok=True)
@@ -42,7 +42,7 @@ def analyze_gene_presence(input_file, output_dir, apply_filter=False):
     matrix = matrix.reset_index().rename(columns={"index": "Gene"})
     presence_file = os.path.join(output_dir, "gene_day_presence_matrix.txt")
     matrix.to_csv(presence_file, sep="\t", index=False)
-    print(f"✅ Gene presence matrix saved to: {presence_file}")
+    print(f"Gene presence matrix saved to: {presence_file}")
 
     # Build Venn data
     venn_data = []
@@ -77,7 +77,7 @@ def analyze_gene_presence(input_file, output_dir, apply_filter=False):
 
     venn_file = os.path.join(output_dir, "gene_venn_data.txt")
     pd.DataFrame(venn_data).to_csv(venn_file, sep="\t", index=False)
-    print(f"✅ Venn diagram gene data saved to: {venn_file}")
+    print(f"Venn diagram gene data saved to: {venn_file}")
 
 def main():
     parser = argparse.ArgumentParser(description="Analyze gene presence by Day for Venn diagram generation.")
@@ -90,7 +90,7 @@ def main():
     try:
         analyze_gene_presence(args.input_file, args.output_dir, args.filter)
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"Error: {e}")
 
 if __name__ == "__main__":
     main()

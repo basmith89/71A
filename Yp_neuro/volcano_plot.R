@@ -2,29 +2,34 @@ library(tidyverse)
 library(scales)
 library(ggrepel)
 
-df <- read.csv("PATH", header =TRUE, sep = ",")
+df <- read.csv("DEG_file.csv", header = TRUE, sep = ",")
 
 df <- df %>%
   mutate(gene_type = case_when(Log2.fold.change >= 1 & BY.p.value <= 0.05 ~ "up",
                                Log2.fold.change <= -1 & BY.p.value <= 0.05 ~ "down",
                                TRUE ~ "ns"))   
 
+####DEGs color coded by p adj value
+cols <- c("up" = "red", "down" = "#26b3ff", "ns" = "grey") 
+sizes <- c("up" = 2, "down" = 2, "ns" = 1) 
+alphas <- c("up" = 1, "down" = 1, "ns" = 0.5)
 
 ###Label vol plot w/ genes of interest
+###Astrocytes
 sig_interest_genes <- df %>%
-  filter(Gene_ID %in% c("Opalin", "Sox10", "Ugt8a", "Pllp", "C1qc", "C3", "Lcn2", "Agt"),
+  filter(Gene_ID %in% c("Lcn2", "Agt", "Fbln5", "Ptgs2", "Gbp2", "Hspb1", "Serpina3n", "Serping1"),
          (Log2.fold.change >= 1 | Log2.fold.change <= -1),
          BY.p.value <= 0.05
   )
 
 up_int_genes <- df %>%
-  filter(Gene_ID %in% c("C1qc", "C3", "Lcn2", "Agt"),
+  filter(Gene_ID %in% c("Lcn2", "Agt", "Fbln5", "Ptgs2", "Gbp2", "Hspb1", "Serpina3n", "Serping1"),
          (Log2.fold.change >= 1 | Log2.fold.change <= -1),
          BY.p.value <= 0.05
   )
 
 down_int_genes <- df %>%
-  filter(Gene_ID %in% c("Opalin", "Sox10", "Ugt8a", "Pllp"),
+  filter(Gene_ID %in% c("test"),
          (Log2.fold.change >= 1 | Log2.fold.change <= -1),
          BY.p.value <= 0.05
   )
@@ -64,13 +69,13 @@ ggplot(data = df,
 
 #####Copied above for microglia genes########
 sig_interest_genes <- df %>%
-  filter(Gene_ID %in% c("Gpr34", "Irf1", "Srgn", "P2ry12", "Cx3cr1"),
+  filter(Gene_ID %in% c("Gpr34", "Irf1", "Srgn", "P2ry12", "Cx3cr1", "C1qc", "C3","C1qa", "C1qb"),
          (Log2.fold.change >= 1 | Log2.fold.change <= -1),
          BY.p.value <= 0.05
   )
 
 up_int_genes <- df %>%
-  filter(Gene_ID %in% c("Irf1", "Srgn"),
+  filter(Gene_ID %in% c("Irf1", "Srgn","C1qc", "C3", "C1qa", "C1qb"),
          (Log2.fold.change >= 1 | Log2.fold.change <= -1),
          BY.p.value <= 0.05
   )
@@ -112,6 +117,54 @@ ggplot(data = df,
                      limits = c(-11, 11))  
 
 
+###Oligodendrocyte genes
+sig_interest_genes <- df %>%
+  filter(Gene_ID %in% c("Opalin", "Sox10", "Ugt8a", "Pllp", "Arc"),
+         (Log2.fold.change >= 1 | Log2.fold.change <= -1),
+         BY.p.value <= 0.05
+  )
+
+up_int_genes <- df %>%
+  filter(Gene_ID %in% c(""),
+         (Log2.fold.change >= 1 | Log2.fold.change <= -1),
+         BY.p.value <= 0.05
+  )
+
+down_int_genes <- df %>%
+  filter(Gene_ID %in% c("Opalin", "Sox10", "Ugt8a", "Pllp", "Arc"),
+         (Log2.fold.change >= 1 | Log2.fold.change <= -1),
+         BY.p.value <= 0.05
+  )
+
+ggplot(data = df,
+       aes(x = Log2.fold.change,
+           y = -log10(P.value))) + 
+  geom_point(aes(colour = gene_type), 
+             alpha = 0.7, 
+             shape = 16,
+             size = 1) + 
+  geom_point(data = up_int_genes,
+             shape = 21,
+             size = 2, 
+             fill = "firebrick", 
+             colour = "black") + 
+  geom_point(data = down_int_genes,
+             shape = 21,
+             size = 2, 
+             fill = "steelblue", 
+             colour = "black") + 
+  labs(color = "Diff Exp") +
+  geom_hline(yintercept = -log10(0.05),
+             linetype = "dashed") + 
+  geom_vline(xintercept = c(log2(0.5), log2(2)),
+             linetype = "dashed") +
+  geom_label_repel(data = sig_interest_genes, # Add labels last to appear as the top layer  
+                   aes(label = Gene_ID),
+                   force = 2,
+                   nudge_y = 1) +
+  scale_colour_manual(values = cols) + 
+  scale_x_continuous(breaks = c(seq(-11, 11.1, 2)),     
+                     limits = c(-11, 11.1))  
 
 
 
